@@ -54,7 +54,7 @@ def read_bsd_db(db_filepath: str) -> {}:
     with open(db_filepath, 'rb') as f:
         header = f.read(4 * 15)
 
-        magic = struct.unpack('>L', header[0:4])[0]
+        magic = struct.unpack('>L', header[:4])[0]
         if magic != 0x61561:
             raise ValueError('Bad magic number')
 
@@ -85,8 +85,7 @@ def read_bsd_db(db_filepath: str) -> {}:
                 val = struct.unpack('<H', offsets[(4+i):(4+i)+2])[0]
                 nval = struct.unpack('<H', offsets[(8+i):(8+i)+2])[0]
 
-                offset_vals.append(key + (pagesize * page))
-                offset_vals.append(val + (pagesize * page))
+                offset_vals.extend((key + (pagesize * page), val + (pagesize * page)))
                 readkeys += 1
                 i += 4
 
@@ -100,10 +99,7 @@ def read_bsd_db(db_filepath: str) -> {}:
 
             page += 1
 
-        db = {}
-        for i in range(0, len(db1), 2):
-            db[db1[i+1]] = db1[i]
-
+        db = {db1[i+1]: db1[i] for i in range(0, len(db1), 2)}
     return db
 
 
@@ -226,16 +222,14 @@ def get_hashcat_string(mpinfos: MasterPasswordInfos) -> str:
 
     if mpinfos.no_master_password:
         return 'No Primary Password is set.'
-    else:
-        s = '$mozilla$*'
+    s = '$mozilla$*'
 
-        if mpinfos.mode == '3des':
-            s += f'3DES*{hex(mpinfos.global_salt)}*{hex(mpinfos.entry_salt)}*{hex(mpinfos.cipher_text)}'
-        else:
-            s += f'AES*{hex(mpinfos.global_salt)}*{hex(mpinfos.entry_salt)}*{mpinfos.iteration}*' \
-                 f'{hex(mpinfos.iv)}*{hex(mpinfos.cipher_text)}'
-
-        return s
+    s += (
+        f'3DES*{hex(mpinfos.global_salt)}*{hex(mpinfos.entry_salt)}*{hex(mpinfos.cipher_text)}'
+        if mpinfos.mode == '3des'
+        else f'AES*{hex(mpinfos.global_salt)}*{hex(mpinfos.entry_salt)}*{mpinfos.iteration}*{hex(mpinfos.iv)}*{hex(mpinfos.cipher_text)}'
+    )
+    return s
 
 
 if __name__ == '__main__':

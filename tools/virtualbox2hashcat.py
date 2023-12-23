@@ -47,25 +47,36 @@ def parse_keystore(file):
         exit(1)
     else:
         for disk in hds:
-            is_enc = disk.getElementsByTagName("Property")
-            if is_enc:
+            if is_enc := disk.getElementsByTagName("Property"):
                 data = disk.getElementsByTagName("Property")[1]
                 keystore = data.getAttribute("value")
 
     raw_ks = base64.decodebytes(keystore.encode())
     unpkt_ks = unpack('<4sxb32s32sI32sI32sI32sII64s', raw_ks)
 
-    idx = 0
     ks = keystore_struct
-    for key in ks.keys():
+    for idx, key in enumerate(ks.keys()):
         ks[key] = unpkt_ks[idx]
-        idx += 1
-
     return ks
 
 def pyvboxdie(vbox):
     keystore = parse_keystore(vbox)
-    print("$vbox$0$" + str(keystore['Iteration1_PBKDF2']) + "$" + hexlify(keystore['Salt1_PBKDF2']).decode() + "$" + str(int(keystore['Key_Length'] / 4)) + "$" + hexlify(keystore['Enc_Password'][0:keystore['Key_Length']]).decode() + "$" + str(keystore['Iteration2_PBKDF2']) + "$" + hexlify(keystore['Salt2_PBKDF2']).decode() + "$" + hexlify(keystore['Final_Hash'].rstrip(b'\x00')).decode())
+    print(
+        "$vbox$0$"
+        + str(keystore['Iteration1_PBKDF2'])
+        + "$"
+        + hexlify(keystore['Salt1_PBKDF2']).decode()
+        + "$"
+        + str(int(keystore['Key_Length'] / 4))
+        + "$"
+        + hexlify(keystore['Enc_Password'][: keystore['Key_Length']]).decode()
+        + "$"
+        + str(keystore['Iteration2_PBKDF2'])
+        + "$"
+        + hexlify(keystore['Salt2_PBKDF2']).decode()
+        + "$"
+        + hexlify(keystore['Final_Hash'].rstrip(b'\x00')).decode()
+    )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="virtualbox2hashcat extraction tool")

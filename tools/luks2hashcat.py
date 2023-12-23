@@ -18,8 +18,8 @@ except ImportError:
     from enum import auto, Enum, IntEnum
 
     class StrEnum(str, Enum):
-        def _generate_next_value_(name, start, count, last_values):
-            return name.lower()
+        def _generate_next_value_(self, start, count, last_values):
+            return self.lower()
 
         __str__ = str.__str__
 
@@ -222,7 +222,7 @@ def extract_version1(file):
     # prepare structs
     key_struct = Struct(">LL32sLL")
     header_struct = Struct(
-        ">6sH32s32s32sLL20s32sL40s" + str(key_struct.size * KEYS_COUNT) + "s" + str(PADDING_LENGTH) + "x"
+        f">6sH32s32s32sLL20s32sL40s{str(key_struct.size * KEYS_COUNT)}s{PADDING_LENGTH}x"
     )
 
     # read header

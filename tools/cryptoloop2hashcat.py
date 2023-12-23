@@ -91,11 +91,9 @@ key_size = args.keysize
 f = args.source
 f.seek(1536)
 
-if sys.version_info[0] == 3:
-  ct = f.read(16).hex()
-else:
-  ct = f.read(16).encode('hex')
-
+ct = f.read(16).hex() if sys.version_info[0] == 3 else f.read(16).encode('hex')
 f.close()
 
-print('$cryptoapi$' + str(kern_type) + '$' + str(key_size) + '$03000000000000000000000000000000$00000000000000000000000000000000$' + ct)
+print(
+    f'$cryptoapi${str(kern_type)}${str(key_size)}$03000000000000000000000000000000$00000000000000000000000000000000${ct}'
+)

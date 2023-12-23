@@ -141,10 +141,12 @@ def read_header(file):
     if len(header_app_version) < header_app_version_length:
         raise ValueError("file contains less data than needed")
 
-    # make header
-    header = Header(*partial_header, header_version_tag, header_app_name, header_app_version)
-
-    return header
+    return Header(
+        *partial_header,
+        header_version_tag,
+        header_app_name,
+        header_app_version
+    )
 
 
 # checksum
@@ -207,17 +209,15 @@ def validate_checksum(checksum, metadata, blob):
 
 def read_metadata(file):
     # prepare structs
-    partial_metadata_struct = Struct(">" + str(METADATA_SALT_SIZE) + "sLLL" + str(METADATA_CIPHER_SIZE) + "s")
-    blob_key_struct = Struct(
-        ">"
-        + str(METADATA_BLOB_KEY_IV_SIZE)
-        + "s"
-        + str(METADATA_BLOB_KEY_AUTH_TAG_SIZE)
-        + "s"
-        + str(METADATA_BLOB_KEY_KEY_SIZE)
-        + "s"
+    partial_metadata_struct = Struct(
+        f">{str(METADATA_SALT_SIZE)}sLLL{str(METADATA_CIPHER_SIZE)}s"
     )
-    blob_struct = Struct(">" + str(METADATA_BLOB_IV_SIZE) + "s" + str(METADATA_BLOB_AUTH_TAG_SIZE) + "s")
+    blob_key_struct = Struct(
+        f">{str(METADATA_BLOB_KEY_IV_SIZE)}s{str(METADATA_BLOB_KEY_AUTH_TAG_SIZE)}s{str(METADATA_BLOB_KEY_KEY_SIZE)}s"
+    )
+    blob_struct = Struct(
+        f">{str(METADATA_BLOB_IV_SIZE)}s{str(METADATA_BLOB_AUTH_TAG_SIZE)}s"
+    )
 
     # read whole metadata space
     file = BytesIO(file.read(METADATA_SIZE))
@@ -242,10 +242,7 @@ def read_metadata(file):
     blob = blob_struct.unpack(blob)
     blob = Metadata.Blob(*blob)
 
-    # make metadata
-    metadata = Metadata(*partial_metadata, blob_key, blob)
-
-    return metadata
+    return Metadata(*partial_metadata, blob_key, blob)
 
 
 # blob

@@ -23,18 +23,11 @@ def metamask_parser(file, shortdata):
 
     isMobile = False
 
-    if 'engine' not in j:
-      if 'salt' not in j or 'iv' not in j or 'data' not in j:
-        print("! Invalid vault format ...")
-        parser.print_help()
-        exit(1)
-    else:
+    if 'engine' in j:
       f.close()
       wallet_data = open(file, "rb").read().decode("utf-8","ignore").replace("\\","")
 
-      # taken from https://github.com/3rdIteration/btcrecover/blob/master/btcrecover/btcrpass.py#L3096-L3103
-      walletStartText = "vault"
-      wallet_data_start = wallet_data.lower().find(walletStartText)
+      wallet_data_start = wallet_data.lower().find("vault")
       wallet_data_trimmed = wallet_data[wallet_data_start:]
       wallet_data_start = wallet_data_trimmed.find("cipher")
       wallet_data_trimmed = wallet_data_trimmed[wallet_data_start - 2:]
@@ -51,20 +44,11 @@ def metamask_parser(file, shortdata):
         parser.print_help()
         exit(1)
 
-    if isMobile is False:
-
-      if((len(j['data']) > 3000) or shortdata):
-        data_bin = base64.b64decode(j['data'])
-        # TODO limit data to 16 bytes, we only check the first block of data, so we don't need more data.
-        #  The use of smaller buffers should speedup the attack.
-        #  Still the pbkdf 10k iter will be taking the most time by far probably.
-        j['data'] = base64.b64encode(data_bin[0:64]).decode("ascii")
-
-        print('$metamask-short$' + j['salt'] + '$' + j['iv'] + '$' + j['data'])
-      else:
-        print('$metamask$' + j['salt'] + '$' + j['iv'] + '$' + j['data'])
-
-    else:
+    elif 'salt' not in j or 'iv' not in j or 'data' not in j:
+      print("! Invalid vault format ...")
+      parser.print_help()
+      exit(1)
+    if isMobile:
 
       # extract first 32 bytes of ciphertext for enhanced resistance to false-positives
 
@@ -72,6 +56,17 @@ def metamask_parser(file, shortdata):
       j['cipher'] = base64.b64encode(cipher_bin[:32]).decode("ascii")
 
       print('$metamaskMobile$' + j['salt'] + '$' + j['iv'] + '$' + j['cipher'])
+
+    elif ((len(j['data']) > 3000) or shortdata):
+      data_bin = base64.b64decode(j['data'])
+        # TODO limit data to 16 bytes, we only check the first block of data, so we don't need more data.
+        #  The use of smaller buffers should speedup the attack.
+        #  Still the pbkdf 10k iter will be taking the most time by far probably.
+      j['data'] = base64.b64encode(data_bin[:64]).decode("ascii")
+
+      print('$metamask-short$' + j['salt'] + '$' + j['iv'] + '$' + j['data'])
+    else:
+      print('$metamask$' + j['salt'] + '$' + j['iv'] + '$' + j['data'])
 
   except ValueError as e:
     parser.print_help()
