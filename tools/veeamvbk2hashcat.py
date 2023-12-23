@@ -21,5 +21,7 @@ if __name__ == '__main__':
                     part1 = data[offs+12:offs+12+96]
                     part2 = data[offs+12+96:offs+12+96+16]
                     part3 = data[offs+12+96+16:offs+12+96+16+64]
-                    print(f'$vbk$*%s*10000*%s' % (binascii.hexlify(part3).decode('utf-8'), binascii.hexlify(part2).decode('utf-8')))
+                    print(
+                        f"$vbk$*{binascii.hexlify(part3).decode('utf-8')}*10000*{binascii.hexlify(part2).decode('utf-8')}"
+                    )
                     break

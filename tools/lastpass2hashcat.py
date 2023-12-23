@@ -61,16 +61,16 @@ def parse_vault(xml):
     offset = 0
     while offset < len(xml):
         identifier = xml[offset:offset + 4].decode("utf-8")
-        offset = offset + 4
+        offset += 4
         size = int.from_bytes(xml[offset:offset + 4], byteorder='big')
-        offset = offset + 4
+        offset += 4
         data = xml[offset:offset + size]
 
         if identifier == 'ENCU':
             initialization_vector, encrypted_email = parse_encu(data)
             return initialization_vector, encrypted_email
 
-        offset = offset + size
+        offset += size
 
     return None, None
 

@@ -15,14 +15,14 @@ key = pbkdf2_hmac("sha256", password.encode(), salt, 10_000)
 iv = b64decode(vault["iv"])
 payload = b64decode(vault["data"])
 ciphertext = payload[:-16]
-print(f"ciphertext.hex()={ciphertext.hex()[0:128]}")
+print(f"ciphertext.hex()={ciphertext.hex()[:128]}")
 tag = payload[-16:]
 
 cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
 plaintext = cipher.decrypt(ciphertext)
 
-print(plaintext.hex()[0:128])
-print(str(plaintext[0:128]))
+print(plaintext.hex()[:128])
+print(plaintext[:128])
 
 print()
 try:

@@ -29,7 +29,7 @@ def parse_keysafe(file):
         with open(file, 'r') as data:
             lines = data.readlines()
     except (OSError, IOError):
-        sys.exit('[-] Cannot read from file ' + data)
+        sys.exit(f'[-] Cannot read from file {data}')
 
     for line in lines:
         if 'encryption.keySafe' in line:
@@ -56,7 +56,7 @@ def parse_keysafe(file):
 
     vmx_ks['hash_round'] = int(match.group(4))
     vmx_ks['salt'] = base64.b64decode(unquote(match.group(5)))
-    vmx_ks['dict'] = base64.b64decode(match.group(7))[0:32]
+    vmx_ks['dict'] = base64.b64decode(match.group(7))[:32]
 
     return vmx_ks
 
